@@ -48,6 +48,10 @@ public class MainActivity extends Activity
     static boolean bDisplayInfoFlag = true;	// show info about display  in log file
     static boolean nCameraInfoFlag = true;	// show info about cameras in log file
 
+    long timeSinceLastFrame = 0;
+    long timeOfLastFrame = System.currentTimeMillis();
+    double fps;
+
     @Override
     protected void onCreate (Bundle savedInstanceState)
     {
@@ -258,6 +262,8 @@ public class MainActivity extends Activity
             String imageStdDevStr = "Std Dev (R,G,B): " + String.format("%4d", (int) redStdDev) + ", " +
                     String.format("%4d", (int) greenStdDev) + ", " + String.format("%4d", (int) blueStdDev);
             drawTextOnBlack(canvas, imageStdDevStr, marginWidth+10, 2 * mLeading, mPaintYellow);
+            String imageFrameRateStr = "Frame Rate: " + String.format("%4d", (int) fps);
+            drawTextOnBlack(canvas, imageFrameRateStr, marginWidth+10, 3 * mLeading, mPaintYellow);
 
             float barWidth = ((float) newImageWidth) / 256;
             // Draw red intensity histogram
@@ -452,6 +458,10 @@ public class MainActivity extends Activity
                     // Pass YUV image data to draw-on-top companion
                     System.arraycopy(data, 0, mDrawOnTop.mYUVData, 0, data.length);
                     mDrawOnTop.invalidate();
+
+                    timeSinceLastFrame = System.currentTimeMillis() - timeOfLastFrame;
+                    timeOfLastFrame = System.currentTimeMillis();
+                    fps = 1000d / (double) timeSinceLastFrame;
                 }
             };
 
