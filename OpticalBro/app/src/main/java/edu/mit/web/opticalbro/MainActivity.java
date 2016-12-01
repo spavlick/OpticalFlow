@@ -8,6 +8,7 @@
 
 package edu.mit.web.opticalbro;
 
+import android.graphics.Path;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Context;
@@ -27,6 +28,7 @@ import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
+import android.graphics.Matrix;
 
 import java.io.IOException;
 import java.util.List;
@@ -273,6 +275,8 @@ public class MainActivity extends Activity
             // Draw blue intensity histogram
             drawHistogram(canvas, mPaintBlue, mBlueHistogram, nPixels, canvasHeight, marginWidth, barWidth);
 
+            drawArrow(canvas, 20.0f,20.0f,mPaintGreen);
+
             super.onDraw(canvas);
 
         } // end onDraw method
@@ -400,6 +404,35 @@ public class MainActivity extends Activity
                 barRect.left += barWidth;
                 barRect.right += barWidth;
             }
+        }
+
+
+        //this class draws an arrow to represent a velocity at a certain point
+        private void drawArrow(Canvas canvas, float x, float y, Paint paint) {
+            float u = 10.0f;
+            float v = 10.0f; //u and v will hold the velocities in the future; may need scaling
+            float mag = 100.0f; //will hold magnitude of arrow
+            float angle = 30.0f;
+            float width = 40.0f;
+
+            Path p = new Path();
+            p.moveTo(x, y);
+            p.lineTo(x,y+width/4);
+            p.lineTo(x+mag-20,y+width/4);
+            p.lineTo(x+mag-20,y+width/2);
+            p.lineTo(x+mag,y);
+            p.lineTo(x+mag-20,y-width/2);
+            p.lineTo(x+mag-20,y-width/4);
+            //p.lineTo(length, height / 2.0f);
+            //p.lineTo(10.0f, height);
+            p.lineTo(x,y-width/4);
+            p.close();
+            Matrix mMatrix = new Matrix();
+            RectF bounds = new RectF();
+            p.computeBounds(bounds, true);
+            mMatrix.postRotate(angle, x, y);
+            p.transform(mMatrix);
+            canvas.drawPath(p, paint);
         }
     }
 
