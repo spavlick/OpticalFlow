@@ -177,9 +177,6 @@ public class MainActivity extends Activity
         byte[] mYUVData;
         int[] mRGBData;
         int mImageWidth, mImageHeight;
-        int[] mRedHistogram;
-        int[] mGreenHistogram;
-        int[] mBlueHistogram;
         Paint mPaintBlack;
         Paint mPaintYellow;
         Paint mPaintRed;
@@ -187,9 +184,6 @@ public class MainActivity extends Activity
         Paint mPaintBlue;
         int mTextsize = 90;		// controls size of text on screen
         int mLeading;			// spacing between text lines
-        RectF barRect = new RectF();	// used in drawing histogram
-        double redMean, greenMean, blueMean;	// computed results
-        double redStdDev, greenStdDev, blueStdDev;
         String TAG = "DrawOnTop";       // for logcat output
 
         public DrawOnTop (Context context)
@@ -205,10 +199,6 @@ public class MainActivity extends Activity
             mBitmap = null;	// will be set up later in Preview - PreviewCallback
             mYUVData = null;
             mRGBData = null;
-            mRedHistogram = new int[256];
-            mGreenHistogram = new int[256];
-            mBlueHistogram = new int[256];
-            barRect = new RectF();    // moved here to reduce GC
             if (DBG) Log.i(TAG, "DrawOnTop textsize " + mTextsize);
             mLeading = mTextsize * 6 / 5;    // adjust line spacing
             if (DBG) Log.i(TAG, "DrawOnTop Leading " + mLeading);
@@ -226,7 +216,6 @@ public class MainActivity extends Activity
         }
 
         // Called when preview is drawn on screen
-        // Compute some statistics and draw text and histograms on screen
 
         @Override
         protected void onDraw (Canvas canvas)
@@ -243,13 +232,6 @@ public class MainActivity extends Activity
 
             // Now do some image processing here:
 
-            // Calculate histograms
-            calculateIntensityHistograms(mRGBData, mRedHistogram, mGreenHistogram, mBlueHistogram,
-                    mImageWidth, mImageHeight);
-
-            // calculate means and standard deviations
-            calculateMeanAndStDev(mRedHistogram, mGreenHistogram, mBlueHistogram, mImageWidth * mImageHeight);
-
             // Finally, use the results to draw things on top of screen:
             int canvasHeight = canvas.getHeight();
             int canvasWidth = canvas.getWidth();
@@ -257,23 +239,8 @@ public class MainActivity extends Activity
             int marginWidth = (canvasWidth - newImageWidth) / 2;
 
             // Draw mean (truncate to integer) text on screen
-            String imageMeanStr = "Mean    (R,G,B): " + String.format("%4d", (int) redMean) + ", " +
-                    String.format("%4d", (int) greenMean) + ", " + String.format("%4d", (int) blueMean);
-            drawTextOnBlack(canvas, imageMeanStr, marginWidth+10, mLeading, mPaintYellow);
-            // Draw standard deviation (truncate to integer) text on screen
-            String imageStdDevStr = "Std Dev (R,G,B): " + String.format("%4d", (int) redStdDev) + ", " +
-                    String.format("%4d", (int) greenStdDev) + ", " + String.format("%4d", (int) blueStdDev);
-            drawTextOnBlack(canvas, imageStdDevStr, marginWidth+10, 2 * mLeading, mPaintYellow);
             String imageFrameRateStr = "Frame Rate: " + String.format("%4d", (int) fps);
             drawTextOnBlack(canvas, imageFrameRateStr, marginWidth+10, 3 * mLeading, mPaintYellow);
-
-            float barWidth = ((float) newImageWidth) / 256;
-            // Draw red intensity histogram
-            drawHistogram(canvas, mPaintRed, mRedHistogram, nPixels, canvasHeight - 2*100, marginWidth, barWidth);
-            // Draw green intensity histogram
-            drawHistogram(canvas, mPaintGreen, mGreenHistogram, nPixels, canvasHeight - 100, marginWidth, barWidth);
-            // Draw blue intensity histogram
-            drawHistogram(canvas, mPaintBlue, mBlueHistogram, nPixels, canvasHeight, marginWidth, barWidth);
 
             drawArrow(canvas, 20.0f,20.0f,mPaintGreen);
 
@@ -326,55 +293,6 @@ public class MainActivity extends Activity
             }
         }
 
-        // This is where we finally actually do some "image processing"!
-
-        public void calculateIntensityHistograms(int[] rgb, int[] redHistogram, int[] greenHistogram, int[] blueHistogram, int width, int height)
-        {
-            final int dpix = 1;
-            int red, green, blue, bin, pixVal;
-            for (bin = 0; bin < 256; bin++) { // reset the histograms
-                redHistogram[bin] = 0;
-                greenHistogram[bin] = 0;
-                blueHistogram[bin] = 0;
-            }
-            for (int pix = 0; pix < width * height; pix += dpix) {
-                pixVal = rgb[pix];
-                blue = pixVal & 0xFF;
-                blueHistogram[blue]++;
-                pixVal = pixVal >> 8;
-                green = pixVal & 0xFF;
-                greenHistogram[green]++;
-                pixVal = pixVal >> 8;
-                red = pixVal & 0xFF;
-                redHistogram[red]++;
-            }
-        }
-
-        private void calculateMeanAndStDev (int mRedHistogram[], int mGreenHistogram[], int mBlueHistogram[], int nPixels)
-        {
-            // Calculate first and second moments (zeroth moment equals nPixels)
-            double red1stMoment = 0, green1stMoment = 0, blue1stMoment = 0;
-            double red2ndMoment = 0, green2ndMoment = 0, blue2ndMoment = 0;
-            double binsquared = 0;
-            for (int bin = 0; bin < 256; bin++) {
-                binsquared += (bin << 1) - 1;	// n^2 - (n-1)^2 = 2*n - 1
-                red1stMoment   += mRedHistogram[bin]   * bin;
-                green1stMoment += mGreenHistogram[bin] * bin;
-                blue1stMoment  += mBlueHistogram[bin]  * bin;
-                red2ndMoment   += mRedHistogram[bin]   * binsquared;
-                green2ndMoment += mGreenHistogram[bin] * binsquared;
-                blue2ndMoment  += mBlueHistogram[bin]  * binsquared;
-
-            } // bin
-
-            redMean   = red1stMoment   / nPixels;
-            greenMean = green1stMoment / nPixels;
-            blueMean  = blue1stMoment  / nPixels;
-
-            redStdDev   = Math.sqrt(red2ndMoment   / nPixels - redMean * redMean);
-            greenStdDev = Math.sqrt(green2ndMoment / nPixels - greenMean * greenMean);
-            blueStdDev  = Math.sqrt(blue2ndMoment  / nPixels - blueMean * blueMean);
-        }
 
         private void drawTextOnBlack (Canvas canvas, String str, int rPos, int cPos, Paint mPaint)
         { // make text stand out from background by providing thin black border
@@ -385,26 +303,6 @@ public class MainActivity extends Activity
             canvas.drawText(str, rPos, cPos, mPaint);
         }
 
-        private void drawHistogram (Canvas canvas, Paint mPaint,
-                                    int mHistogram[], int nPixels,
-                                    int mBottom, int marginWidth, float barWidth)
-        {
-            float barMaxHeight = 3000; // controls vertical scale of histogram
-            float barMarginHeight = 2;
-
-            barRect.bottom = mBottom;
-            barRect.left = marginWidth;
-            barRect.right = barRect.left + barWidth;
-            for (int bin = 0; bin < 256; bin++) {
-                float prob = (float) mHistogram[bin] / (float) nPixels;
-                barRect.top = barRect.bottom - Math.min(80, prob * barMaxHeight) - barMarginHeight;
-                canvas.drawRect(barRect, mPaintBlack);
-                barRect.top += barMarginHeight;
-                canvas.drawRect(barRect, mPaint);
-                barRect.left += barWidth;
-                barRect.right += barWidth;
-            }
-        }
 
 
         //this class draws an arrow to represent a velocity at a certain point
@@ -413,19 +311,19 @@ public class MainActivity extends Activity
             float v = 10.0f; //u and v will hold the velocities in the future; may need scaling
             float mag = 100.0f; //will hold magnitude of arrow
             float angle = 30.0f;
-            float width = 40.0f;
+            float width = 35.0f;
 
             Path p = new Path();
             p.moveTo(x, y);
-            p.lineTo(x,y+width/4);
-            p.lineTo(x+mag-20,y+width/4);
-            p.lineTo(x+mag-20,y+width/2);
+            p.lineTo(x,y+width/5);
+            p.lineTo(x+mag-30.0f,y+width/5);
+            p.lineTo(x+mag-30.0f,y+width/2);
             p.lineTo(x+mag,y);
-            p.lineTo(x+mag-20,y-width/2);
-            p.lineTo(x+mag-20,y-width/4);
+            p.lineTo(x+mag-30.0f,y-width/2);
+            p.lineTo(x+mag-30.0f,y-width/5);
             //p.lineTo(length, height / 2.0f);
             //p.lineTo(10.0f, height);
-            p.lineTo(x,y-width/4);
+            p.lineTo(x,y-width/5);
             p.close();
             Matrix mMatrix = new Matrix();
             RectF bounds = new RectF();
