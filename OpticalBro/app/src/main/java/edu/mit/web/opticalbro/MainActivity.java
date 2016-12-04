@@ -228,9 +228,18 @@ public class MainActivity extends Activity
             }
 
             // Convert image from YUV to RGB format:
-            decodeYUV420SP(mRGBData, mYUVData, mImageWidth, mImageHeight);
+            //decodeYUV420SP(mRGBData, mYUVData, mImageWidth, mImageHeight);
+            // Currently using the "grayscale" version, which puts the grayscale value into
+            // the "r" component of the mRGBData array.
+            decodeYUV420SPGrayscale(mRGBData, mYUVData, mImageWidth, mImageHeight);
 
             // Now do some image processing here:
+            // Calculate the FPS
+            timeSinceLastFrame = System.currentTimeMillis() - timeOfLastFrame;
+            timeOfLastFrame = System.currentTimeMillis();
+            fps = 1000d / (double) timeSinceLastFrame;
+
+            // Todo: Calculate the brightness gradient in X, Y, and time
 
             // Finally, use the results to draw things on top of screen:
             int canvasHeight = canvas.getHeight();
@@ -240,7 +249,7 @@ public class MainActivity extends Activity
 
             // Draw mean (truncate to integer) text on screen
             String imageFrameRateStr = "Frame Rate: " + String.format("%4d", (int) fps);
-            drawTextOnBlack(canvas, imageFrameRateStr, marginWidth+10, 3 * mLeading, mPaintYellow);
+            drawTextOnBlack(canvas, imageFrameRateStr, marginWidth+10, mLeading, mPaintYellow);
 
             drawArrow(canvas, 20.0f,20.0f,mPaintGreen);
 
@@ -389,10 +398,6 @@ public class MainActivity extends Activity
                     // Pass YUV image data to draw-on-top companion
                     System.arraycopy(data, 0, mDrawOnTop.mYUVData, 0, data.length);
                     mDrawOnTop.invalidate();
-
-                    timeSinceLastFrame = System.currentTimeMillis() - timeOfLastFrame;
-                    timeOfLastFrame = System.currentTimeMillis();
-                    fps = 1000d / (double) timeSinceLastFrame;
                 }
             };
 
