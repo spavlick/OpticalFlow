@@ -176,6 +176,7 @@ public class MainActivity extends Activity
         Bitmap mBitmap;
         byte[] mYUVData;
         int[] mRGBData;
+        int[][] mGrayscaleData;
         int mImageWidth, mImageHeight;
         Paint mPaintBlack;
         Paint mPaintYellow;
@@ -229,9 +230,9 @@ public class MainActivity extends Activity
 
             // Convert image from YUV to RGB format:
             //decodeYUV420SP(mRGBData, mYUVData, mImageWidth, mImageHeight);
-            // Currently using the "grayscale" version, which puts the grayscale value into
-            // the "r" component of the mRGBData array.
+            // Currently using the "grayscale" version
             decodeYUV420SPGrayscale(mRGBData, mYUVData, mImageWidth, mImageHeight);
+            reshapeTo2D(mRGBData, mGrayscaleData, mImageWidth, mImageHeight);
 
             // Now do some image processing here:
             // Calculate the FPS
@@ -298,7 +299,15 @@ public class MainActivity extends Activity
                 int y = (0xFF & ((int) yuv420sp[pix])) - 16;
                 if (y < 0) y = 0;
                 if (y > 0xFF) y = 0xFF;
-                rgb[pix] = 0xFF000000 | (y << 16) | (y << 8) | y;
+                rgb[pix] = y;
+            }
+        }
+
+        public void reshapeTo2D (int[] rgb, int[][] greyscale, int width, int height) {
+            for (int j = 0, pix = 0; j < height; j++) {
+                for (int i = 0; i < width; i++, pix++) {
+                    greyscale[i][j] = rgb[pix];
+                }
             }
         }
 
