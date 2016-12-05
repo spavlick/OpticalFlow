@@ -9,6 +9,7 @@
 package edu.mit.web.opticalbro;
 
 import android.graphics.Path;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Context;
@@ -189,9 +190,9 @@ public class MainActivity extends Activity
         String TAG = "DrawOnTop";       // for logcat output
 
         // Derivatives of brightness in x, y, and time
-        float[][] E_x;
-        float[][] E_y;
-        float[][] E_t;
+        int[][] E_x;
+        int[][] E_y;
+        int[][] E_t;
 
         public DrawOnTop (Context context)
         { // constructor
@@ -251,32 +252,36 @@ public class MainActivity extends Activity
             for (int j = 0; j < mImageHeight - 1; j++) {
                 for (int i = 0; i < mImageWidth - 1; i++) {
                     // units are [greyscale_value per pixel]
-                    E_x[j][i] = 0.25f * (mPrevGrayscaleData[j][i+1]
+                    E_x[j][i] = (int)(0.25*(mPrevGrayscaleData[j][i+1]
                             + mGrayscaleData[j][i+1]
                             + mPrevGrayscaleData[j+1][i+1]
                             + mGrayscaleData[j+1][i+1]
                             - mPrevGrayscaleData[j][i]
                             - mGrayscaleData[j][i]
                             - mPrevGrayscaleData[j+1][i]
-                            - mGrayscaleData[j+1][i]);
-                    E_y[j][i] = 0.25f * (mPrevGrayscaleData[j+1][i]
+                            - mGrayscaleData[j+1][i]));
+                    E_y[j][i] = (int)(0.25*(mPrevGrayscaleData[j+1][i]
                             + mGrayscaleData[j+1][i]
                             + mPrevGrayscaleData[j+1][i+1]
                             + mGrayscaleData[j+1][i+1]
                             - mPrevGrayscaleData[j][i]
                             - mGrayscaleData[j][i]
                             - mPrevGrayscaleData[j][i+1]
-                            - mGrayscaleData[j][i+1]);
+                            - mGrayscaleData[j][i+1]));
                     // units are [greyscale_value per second)
-                    E_t[j][i] = ((float)fps) * 0.25f * (mGrayscaleData[j][i]
+                    E_t[j][i] = (int)(fps*0.25*(mGrayscaleData[j][i]
                             + mGrayscaleData[j+1][i]
                             + mGrayscaleData[j][i+1]
                             + mGrayscaleData[j+1][i+1]
                             - mPrevGrayscaleData[j][i]
                             - mPrevGrayscaleData[j+1][i]
                             - mPrevGrayscaleData[j][i+1]
-                            - mPrevGrayscaleData[j+1][i+1]);
+                            - mPrevGrayscaleData[j+1][i+1]));
                 }
+            }
+
+            for (int iterations = 0; iterations < 32; iterations++) {
+
             }
 
             // copy the new data to mPrevGrayscaleData for use in the next frame
@@ -284,19 +289,28 @@ public class MainActivity extends Activity
                 System.arraycopy(mGrayscaleData[j], 0, mPrevGrayscaleData[j], 0, mImageWidth);
             }
 
-            mPrevGrayscaleData = mGrayscaleData;
-
             // Finally, use the results to draw things on top of screen:
             int canvasHeight = canvas.getHeight();
             int canvasWidth = canvas.getWidth();
             int newImageWidth = canvasWidth - 200;
             int marginWidth = (canvasWidth - newImageWidth) / 2;
 
-            // Draw mean (truncate to integer) text on screen
+            drawArrow(canvas, 20.0f,20.0f,mPaintGreen);
+
+            // Uncomment below line to draw the x gradient on top of the image
+            /*
+            int[] E_x1D = new int[(mImageHeight - 1) * (mImageWidth - 1)];
+            reshapeTo1D(E_x, E_x1D, (mImageWidth - 1), (mImageHeight - 1));
+
+            Bitmap gradientBitmap = Bitmap.createBitmap(E_x1D, mImageWidth-1, mImageHeight-1, Bitmap.Config.ARGB_8888);
+
+            Rect imageRect = new Rect(0, 0, mImageWidth - 1, mImageHeight - 1);
+            Rect canvasRect = new Rect(0, 0, canvasWidth, canvasHeight);
+            canvas.drawBitmap(gradientBitmap, imageRect, canvasRect, null);
+            */
+
             String imageFrameRateStr = "Frame Rate: " + String.format("%4d", (int) fps);
             drawTextOnBlack(canvas, imageFrameRateStr, marginWidth+10, mLeading, mPaintYellow);
-
-            drawArrow(canvas, 20.0f,20.0f,mPaintGreen);
 
             super.onDraw(canvas);
 
@@ -351,6 +365,14 @@ public class MainActivity extends Activity
             for (int j = 0, pix = 0; j < height; j++) {
                 for (int i = 0; i < width; i++, pix++) {
                     greyscale[j][i] = rgb[pix];
+                }
+            }
+        }
+
+        public void reshapeTo1D (int[][] srcArray, int[] dstArray, int width, int height) {
+            for (int j = 0, pix = 0; j < height; j++) {
+                for (int i = 0; i < width; i++, pix++) {
+                    dstArray[pix] = srcArray[j][i];
                 }
             }
         }
@@ -520,9 +542,9 @@ public class MainActivity extends Activity
             mDrawOnTop.mRGBData = new int[mDrawOnTop.mImageWidth * mDrawOnTop.mImageHeight];
             mDrawOnTop.mGrayscaleData = new int[mDrawOnTop.mImageHeight][mDrawOnTop.mImageWidth];
             mDrawOnTop.mPrevGrayscaleData = new int[mDrawOnTop.mImageHeight][mDrawOnTop.mImageWidth];
-            mDrawOnTop.E_x = new float[mDrawOnTop.mImageHeight - 1][mDrawOnTop.mImageWidth - 1];
-            mDrawOnTop.E_y = new float[mDrawOnTop.mImageHeight - 1][mDrawOnTop.mImageWidth - 1];
-            mDrawOnTop.E_t = new float[mDrawOnTop.mImageHeight - 1][mDrawOnTop.mImageWidth - 1];
+            mDrawOnTop.E_x = new int[mDrawOnTop.mImageHeight - 1][mDrawOnTop.mImageWidth - 1];
+            mDrawOnTop.E_y = new int[mDrawOnTop.mImageHeight - 1][mDrawOnTop.mImageWidth - 1];
+            mDrawOnTop.E_t = new int[mDrawOnTop.mImageHeight - 1][mDrawOnTop.mImageWidth - 1];
             if (DBG) Log.i(TAG, "data length " + data.length); // should be width*height*3/2 for YUV format
             mDrawOnTop.mYUVData = new byte[data.length];
             int dataLengthExpected = mDrawOnTop.mImageWidth * mDrawOnTop.mImageHeight * 3 / 2;
