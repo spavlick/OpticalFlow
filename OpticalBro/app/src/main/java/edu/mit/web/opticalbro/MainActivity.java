@@ -377,6 +377,30 @@ public class MainActivity extends Activity
             }
         }
 
+        // get the average of the pixels above, below, left, and right
+        // or a limited set of those if it's an edge pixel
+        public float getNeighborAverage(float[][] array, int i, int j, int width, int height){
+            int neighborCount = 0;
+            int neighborSum = 0;
+            if (i > 0) {
+                neighborCount++;
+                neighborSum += array[j][i-1];
+            }
+            if (j > 0) {
+                neighborCount++;
+                neighborSum += array[j-1][i];
+            }
+            if (i < width) {
+                neighborCount++;
+                neighborSum += array[j][i+1];
+            }
+            if (j < height) {
+                neighborCount++;
+                neighborSum += array[j+1][i];
+            }
+            return ((float)neighborSum / neighborCount);
+        }
+
 
         private void drawTextOnBlack (Canvas canvas, String str, int rPos, int cPos, Paint mPaint)
         { // make text stand out from background by providing thin black border
