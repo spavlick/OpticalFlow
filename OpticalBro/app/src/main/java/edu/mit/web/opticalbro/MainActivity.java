@@ -177,6 +177,7 @@ public class MainActivity extends Activity
         byte[] mYUVData;
         int[] mRGBData;
         int[][] mGrayscaleData;
+        int[][] mPrevGrayscaleData;
         int mImageWidth, mImageHeight;
         Paint mPaintBlack;
         Paint mPaintYellow;
@@ -186,6 +187,11 @@ public class MainActivity extends Activity
         int mTextsize = 90;		// controls size of text on screen
         int mLeading;			// spacing between text lines
         String TAG = "DrawOnTop";       // for logcat output
+
+        // Derivatives of brightness in x, y, and time
+        float[][] E_x;
+        float[][] E_y;
+        float[][] E_t;
 
         public DrawOnTop (Context context)
         { // constructor
@@ -200,6 +206,7 @@ public class MainActivity extends Activity
             mBitmap = null;	// will be set up later in Preview - PreviewCallback
             mYUVData = null;
             mRGBData = null;
+            mGrayscaleData = null;
             if (DBG) Log.i(TAG, "DrawOnTop textsize " + mTextsize);
             mLeading = mTextsize * 6 / 5;    // adjust line spacing
             if (DBG) Log.i(TAG, "DrawOnTop Leading " + mLeading);
@@ -240,7 +247,44 @@ public class MainActivity extends Activity
             timeOfLastFrame = System.currentTimeMillis();
             fps = 1000d / (double) timeSinceLastFrame;
 
-            // Todo: Calculate the brightness gradient in X, Y, and time
+            // Calculate the brightness gradient in X, Y, and time
+            for (int j = 0; j < mImageHeight - 1; j++) {
+                for (int i = 0; i < mImageWidth - 1; i++) {
+                    // units are [greyscale_value per pixel]
+                    E_x[j][i] = 0.25f * (mPrevGrayscaleData[j][i+1]
+                            + mGrayscaleData[j][i+1]
+                            + mPrevGrayscaleData[j+1][i+1]
+                            + mGrayscaleData[j+1][i+1]
+                            - mPrevGrayscaleData[j][i]
+                            - mGrayscaleData[j][i]
+                            - mPrevGrayscaleData[j+1][i]
+                            - mGrayscaleData[j+1][i]);
+                    E_y[j][i] = 0.25f * (mPrevGrayscaleData[j+1][i]
+                            + mGrayscaleData[j+1][i]
+                            + mPrevGrayscaleData[j+1][i+1]
+                            + mGrayscaleData[j+1][i+1]
+                            - mPrevGrayscaleData[j][i]
+                            - mGrayscaleData[j][i]
+                            - mPrevGrayscaleData[j][i+1]
+                            - mGrayscaleData[j][i+1]);
+                    // units are [greyscale_value per second)
+                    E_t[j][i] = ((float)fps) * 0.25f * (mGrayscaleData[j][i]
+                            + mGrayscaleData[j+1][i]
+                            + mGrayscaleData[j][i+1]
+                            + mGrayscaleData[j+1][i+1]
+                            - mPrevGrayscaleData[j][i]
+                            - mPrevGrayscaleData[j+1][i]
+                            - mPrevGrayscaleData[j][i+1]
+                            - mPrevGrayscaleData[j+1][i+1]);
+                }
+            }
+
+            // copy the new data to mPrevGrayscaleData for use in the next frame
+            for (int j = 0; j < mImageHeight; j++) {
+                System.arraycopy(mGrayscaleData[j], 0, mPrevGrayscaleData[j], 0, mImageWidth);
+            }
+
+            mPrevGrayscaleData = mGrayscaleData;
 
             // Finally, use the results to draw things on top of screen:
             int canvasHeight = canvas.getHeight();
@@ -306,7 +350,7 @@ public class MainActivity extends Activity
         public void reshapeTo2D (int[] rgb, int[][] greyscale, int width, int height) {
             for (int j = 0, pix = 0; j < height; j++) {
                 for (int i = 0; i < width; i++, pix++) {
-                    greyscale[i][j] = rgb[pix];
+                    greyscale[j][i] = rgb[pix];
                 }
             }
         }
@@ -474,6 +518,11 @@ public class MainActivity extends Activity
             mDrawOnTop.mBitmap = Bitmap.createBitmap(mDrawOnTop.mImageWidth,
                     mDrawOnTop.mImageHeight, Bitmap.Config.RGB_565);
             mDrawOnTop.mRGBData = new int[mDrawOnTop.mImageWidth * mDrawOnTop.mImageHeight];
+            mDrawOnTop.mGrayscaleData = new int[mDrawOnTop.mImageHeight][mDrawOnTop.mImageWidth];
+            mDrawOnTop.mPrevGrayscaleData = new int[mDrawOnTop.mImageHeight][mDrawOnTop.mImageWidth];
+            mDrawOnTop.E_x = new float[mDrawOnTop.mImageHeight - 1][mDrawOnTop.mImageWidth - 1];
+            mDrawOnTop.E_y = new float[mDrawOnTop.mImageHeight - 1][mDrawOnTop.mImageWidth - 1];
+            mDrawOnTop.E_t = new float[mDrawOnTop.mImageHeight - 1][mDrawOnTop.mImageWidth - 1];
             if (DBG) Log.i(TAG, "data length " + data.length); // should be width*height*3/2 for YUV format
             mDrawOnTop.mYUVData = new byte[data.length];
             int dataLengthExpected = mDrawOnTop.mImageWidth * mDrawOnTop.mImageHeight * 3 / 2;
