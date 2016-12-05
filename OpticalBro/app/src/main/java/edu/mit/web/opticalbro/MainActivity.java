@@ -194,6 +194,16 @@ public class MainActivity extends Activity
         int[][] E_y;
         int[][] E_t;
 
+        // optical flow in the x and y directions
+        float u[][];
+        float v[][];
+        // optical flow local average (used in intermediate computation)
+        float uAvg[][];
+        float vAvg[][];
+
+        // play around with this value
+        float lambda = 1;
+
         public DrawOnTop (Context context)
         { // constructor
             super(context);
@@ -280,8 +290,33 @@ public class MainActivity extends Activity
                 }
             }
 
-            for (int iterations = 0; iterations < 32; iterations++) {
 
+            // todo: move the following optical flow code into its own method
+            
+            // Initialize the guesses for optical flow as 0 everywhere
+            u = new float[mImageHeight-1][mImageWidth-1];
+            v = new float[mImageHeight-1][mImageWidth-1];
+            uAvg = new float[mImageHeight-1][mImageWidth-1];
+            vAvg = new float[mImageHeight-1][mImageWidth-1];
+
+            // Calculate the optical flow using an iterative scheme
+            for (int iterations = 0; iterations < 2; iterations++) {
+                // first, calculate the averages
+                for (int j = 0; j < mImageHeight-1; j++) {
+                    for (int i = 0; i < mImageWidth-1; i++) {
+                        uAvg[j][i] = getNeighborAverage(u, i, j, mImageWidth-1, mImageHeight-1);
+                        vAvg[j][i] = getNeighborAverage(v, i, j, mImageWidth-1, mImageHeight-1);
+                    }
+                }
+
+                // Then, calculate the new estimate for the velocities
+                for (int j = 0; j < mImageHeight-1; j++) {
+                    for (int i = 0; i < mImageWidth-1; i++) {
+                        float adjustment = (E_x[j][i] * uAvg[j][i] + E_y[j][i] * vAvg[j][i] + E_t[j][i]) / (1 + lambda * ((float)Math.pow(E_x[j][i], 2) + (float)Math.pow(E_y[j][i],2)));
+                        u[j][i] = u[j][i] - E_x[j][i] * adjustment;
+                        v[j][i] = u[j][i] - E_y[j][i] * adjustment;
+                    }
+                }
             }
 
             // copy the new data to mPrevGrayscaleData for use in the next frame
@@ -382,6 +417,7 @@ public class MainActivity extends Activity
         public float getNeighborAverage(float[][] array, int i, int j, int width, int height){
             int neighborCount = 0;
             int neighborSum = 0;
+            // For each neighbor, check if it's possible for that neighbor to exist
             if (i > 0) {
                 neighborCount++;
                 neighborSum += array[j][i-1];
@@ -390,11 +426,11 @@ public class MainActivity extends Activity
                 neighborCount++;
                 neighborSum += array[j-1][i];
             }
-            if (i < width) {
+            if (i < width - 1) {
                 neighborCount++;
                 neighborSum += array[j][i+1];
             }
-            if (j < height) {
+            if (j < height - 1) {
                 neighborCount++;
                 neighborSum += array[j+1][i];
             }
