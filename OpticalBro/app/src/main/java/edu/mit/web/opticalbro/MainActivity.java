@@ -40,7 +40,8 @@ public class MainActivity extends Activity
     String asterisks = " *******************************************"; // for noticeable marker in log
     protected static int mCam = 0;      // the number of the camera to use (0 => rear facing)
     protected static Camera mCamera = null;
-    int nPixels = 60 * 80;            // approx number of pixels desired in preview
+    int nPixels = 240 * 320;            // approx number of pixels desired in preview
+    int downscalingFactor = 2;          // factor for downsampling the image after capture but prior to processing; the resolution will be divided by this number in each dimension
     protected static int mCameraHeight;   // preview height (determined later)
     protected static int mCameraWidth;    // preview width
     protected static Preview mPreview;
@@ -299,7 +300,7 @@ public class MainActivity extends Activity
             vAvg = new float[mImageHeight-1][mImageWidth-1];
 
             // Calculate the optical flow using an iterative scheme
-            for (int iterations = 0; iterations < 2; iterations++) {
+            for (int iterations = 0; iterations < 3; iterations++) {
                 // first, calculate the averages
                 for (int j = 0; j < mImageHeight-1; j++) {
                     for (int i = 0; i < mImageWidth-1; i++) {
@@ -329,7 +330,7 @@ public class MainActivity extends Activity
             int newImageWidth = canvasWidth - 200;
             int marginWidth = (canvasWidth - newImageWidth) / 2;
 
-            drawArrow(canvas, 200.0f,200.0f,(double)u[200][200],(double)v[200][200],mPaintGreen);
+            drawArrow(canvas, 100.0f,100.0f,(double)u[100][100],(double)v[100][100],mPaintGreen);
 
             // Uncomment below line to draw the x gradient on top of the image
             /*
@@ -388,12 +389,13 @@ public class MainActivity extends Activity
 
             // This is much simpler since we can ignore the u and v components
             for (int j = 0, pix = 0; j < height; j++) {
-                for (int i = 0; i < width; i++, pix++) {
+                for (int i = 0; i < width; i++, pix += downscalingFactor) {
                     int y = (0xFF & ((int) yuv420sp[pix])) - 16;
                     if (y < 0) y = 0;
                     if (y > 0xFF) y = 0xFF;
                     greyscale[j][i] = y;
                 }
+                pix += (downscalingFactor - 1) * width;
             }
         }
 
@@ -596,8 +598,8 @@ public class MainActivity extends Activity
             String TAG="setupArrays";
             if (DBG) Log.i(TAG, "Setting up arrays");
             Camera.Parameters params = camera.getParameters();
-            mDrawOnTop.mImageHeight = params.getPreviewSize().height;
-            mDrawOnTop.mImageWidth = params.getPreviewSize().width;
+            mDrawOnTop.mImageHeight = params.getPreviewSize().height / downscalingFactor;
+            mDrawOnTop.mImageWidth = params.getPreviewSize().width / downscalingFactor;
             if (DBG) Log.i(TAG, "height " + mDrawOnTop.mImageHeight + " width " + mDrawOnTop.mImageWidth);
             mDrawOnTop.mBitmap = Bitmap.createBitmap(mDrawOnTop.mImageWidth,
                     mDrawOnTop.mImageHeight, Bitmap.Config.RGB_565);
@@ -609,7 +611,7 @@ public class MainActivity extends Activity
             mDrawOnTop.E_t = new int[mDrawOnTop.mImageHeight - 1][mDrawOnTop.mImageWidth - 1];
             if (DBG) Log.i(TAG, "data length " + data.length); // should be width*height*3/2 for YUV format
             mDrawOnTop.mYUVData = new byte[data.length];
-            int dataLengthExpected = mDrawOnTop.mImageWidth * mDrawOnTop.mImageHeight * 3 / 2;
+            int dataLengthExpected = downscalingFactor * downscalingFactor * mDrawOnTop.mImageWidth * mDrawOnTop.mImageHeight * 3 / 2;
             if (data.length != dataLengthExpected)
                 Log.e(TAG, "ERROR: data length mismatch "+data.length+" vs "+dataLengthExpected);
         }
