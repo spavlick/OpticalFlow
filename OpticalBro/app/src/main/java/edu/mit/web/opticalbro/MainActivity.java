@@ -40,7 +40,7 @@ public class MainActivity extends Activity
     String asterisks = " *******************************************"; // for noticeable marker in log
     protected static int mCam = 0;      // the number of the camera to use (0 => rear facing)
     protected static Camera mCamera = null;
-    int nPixels = 480 * 640;            // approx number of pixels desired in preview
+    int nPixels = 60 * 80;            // approx number of pixels desired in preview
     protected static int mCameraHeight;   // preview height (determined later)
     protected static int mCameraWidth;    // preview width
     protected static Preview mPreview;
@@ -53,7 +53,7 @@ public class MainActivity extends Activity
 
     long timeSinceLastFrame = 0;
     long timeOfLastFrame = System.currentTimeMillis();
-    double fps;
+    float fps;
 
     @Override
     protected void onCreate (Bundle savedInstanceState)
@@ -255,37 +255,37 @@ public class MainActivity extends Activity
             // Calculate the FPS
             timeSinceLastFrame = System.currentTimeMillis() - timeOfLastFrame;
             timeOfLastFrame = System.currentTimeMillis();
-            fps = 1000d / (double) timeSinceLastFrame;
+            fps = 1000f / timeSinceLastFrame;
 
             // Calculate the brightness gradient in X, Y, and time
             for (int j = 0; j < mImageHeight - 1; j++) {
                 for (int i = 0; i < mImageWidth - 1; i++) {
                     // units are [greyscale_value per pixel]
-                    E_x[j][i] = (int)(0.25*(mPrevGrayscaleData[j][i+1]
+                    E_x[j][i] = (mPrevGrayscaleData[j][i+1]
                             + mGrayscaleData[j][i+1]
                             + mPrevGrayscaleData[j+1][i+1]
                             + mGrayscaleData[j+1][i+1]
                             - mPrevGrayscaleData[j][i]
                             - mGrayscaleData[j][i]
                             - mPrevGrayscaleData[j+1][i]
-                            - mGrayscaleData[j+1][i]));
-                    E_y[j][i] = (int)(0.25*(mPrevGrayscaleData[j+1][i]
+                            - mGrayscaleData[j+1][i])>>2;
+                    E_y[j][i] = (mPrevGrayscaleData[j+1][i]
                             + mGrayscaleData[j+1][i]
                             + mPrevGrayscaleData[j+1][i+1]
                             + mGrayscaleData[j+1][i+1]
                             - mPrevGrayscaleData[j][i]
                             - mGrayscaleData[j][i]
                             - mPrevGrayscaleData[j][i+1]
-                            - mGrayscaleData[j][i+1]));
+                            - mGrayscaleData[j][i+1])>>2;
                     // units are [greyscale_value per second)
-                    E_t[j][i] = (int)(fps*0.25*(mGrayscaleData[j][i]
+                    E_t[j][i] = (int)(fps*((mGrayscaleData[j][i]
                             + mGrayscaleData[j+1][i]
                             + mGrayscaleData[j][i+1]
                             + mGrayscaleData[j+1][i+1]
                             - mPrevGrayscaleData[j][i]
                             - mPrevGrayscaleData[j+1][i]
                             - mPrevGrayscaleData[j][i+1]
-                            - mPrevGrayscaleData[j+1][i+1]));
+                            - mPrevGrayscaleData[j+1][i+1])>>2));
                 }
             }
 
