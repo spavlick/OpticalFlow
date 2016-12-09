@@ -454,7 +454,7 @@ public class MainActivity extends Activity
         private void drawArrow(Canvas canvas, float x, float y, double u, double v, Paint paint) {
             float mag = 5.0f*(float)Math.sqrt(Math.pow(u,2.0) + Math.pow(v,2.0)); //hold magnitude of arrow
             //float mag = 50.0f;
-            float angle = (float)Math.atan2(v,u); //orientation of vector (u,v).T
+            float angle = (float)(Math.atan2(v,u)*360/(2*Math.PI)); //orientation of vector (u,v).T
             //float angle = -10.0f;
             float width = 35.0f;
 
