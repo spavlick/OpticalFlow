@@ -330,7 +330,7 @@ public class MainActivity extends Activity
             int newImageWidth = canvasWidth - 200;
             int marginWidth = (canvasWidth - newImageWidth) / 2;
 
-            drawArrow(canvas, 20.0f,20.0f,mPaintGreen);
+            drawArrow(canvas, 200.0f,200.0f,(double)u[200][200],(double)v[200][200],mPaintGreen);
 
             // Uncomment below line to draw the x gradient on top of the image
             /*
@@ -450,24 +450,24 @@ public class MainActivity extends Activity
 
 
         //this class draws an arrow to represent a velocity at a certain point
-        private void drawArrow(Canvas canvas, float x, float y, Paint paint) {
-            float u = 10.0f;
-            float v = 10.0f; //u and v will hold the velocities in the future; may need scaling
-            float mag = 100.0f; //will hold magnitude of arrow
-            float angle = 30.0f;
+        private void drawArrow(Canvas canvas, float x, float y, double u, double v, Paint paint) {
+            float mag = 5.0f*(float)Math.sqrt(Math.pow(u,2.0) + Math.pow(v,2.0)); //hold magnitude of arrow
+            //float mag = 50.0f;
+            float angle = (float)Math.atan2(v,u); //orientation of vector (u,v).T
+            //float angle = -10.0f;
             float width = 35.0f;
 
             Path p = new Path();
             p.moveTo(x, y);
-            p.lineTo(x,y+width/5);
-            p.lineTo(x+mag-30.0f,y+width/5);
-            p.lineTo(x+mag-30.0f,y+width/2);
+            p.lineTo(x,y+mag/6);
+            p.lineTo(x+mag*(5.0f/8.0f),y+mag/6);
+            p.lineTo(x+mag*(5.0f/8.0f),y+mag/3);
             p.lineTo(x+mag,y);
-            p.lineTo(x+mag-30.0f,y-width/2);
-            p.lineTo(x+mag-30.0f,y-width/5);
+            p.lineTo(x+mag*(5.0f/8.0f),y-mag/3);
+            p.lineTo(x+mag*(5.0f/8.0f),y-mag/6);
             //p.lineTo(length, height / 2.0f);
             //p.lineTo(10.0f, height);
-            p.lineTo(x,y-width/5);
+            p.lineTo(x,y-mag/6);
             p.close();
             Matrix mMatrix = new Matrix();
             RectF bounds = new RectF();
@@ -475,6 +475,7 @@ public class MainActivity extends Activity
             mMatrix.postRotate(angle, x, y);
             p.transform(mMatrix);
             canvas.drawPath(p, paint);
+            drawTextOnBlack(canvas, "mag   " + mag, 60+10, 250, mPaintYellow);
         }
     }
 
