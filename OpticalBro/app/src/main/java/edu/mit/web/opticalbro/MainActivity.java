@@ -330,7 +330,7 @@ public class MainActivity extends Activity
             int newImageWidth = canvasWidth - 200;
             int marginWidth = (canvasWidth - newImageWidth) / 2;
 
-            drawArrow(canvas, 100.0f,100.0f,(double)u[100][100],(double)v[100][100],mPaintGreen);
+            drawArrow(canvas, 200.0f,200.0f,u,v,mPaintGreen);
 
             // Uncomment below line to draw the x gradient on top of the image
             /*
@@ -453,33 +453,48 @@ public class MainActivity extends Activity
 
 
         //this class draws an arrow to represent a velocity at a certain point
-        private void drawArrow(Canvas canvas, float x, float y, double u, double v, Paint paint) {
-            float mag = 5.0f*(float)Math.sqrt(Math.pow(u,2.0) + Math.pow(v,2.0)); //hold magnitude of arrow
+        private void drawArrow(Canvas canvas, float x, float y, float[][] u, float[][] v, Paint paint) {
+            double avg_xvel = (u[(int)y][(int)x]+u[(int)y-1][(int)x]+u[(int)y+1][(int)x]
+                    +u[(int)y][(int)x-1]+u[(int)y][(int)x+1]+u[(int)y-1][(int)x-1]
+                    +u[(int)y-1][(int)x+1]+u[(int)y+1][(int)x-1]
+                    +u[(int)y+1][(int)x+1])/9;
+            double avg_yvel = (v[(int)y][(int)x]+u[(int)y-1][(int)x]+u[(int)y+1][(int)x]
+                    +u[(int)y][(int)x-1]+u[(int)y][(int)x+1]+u[(int)y-1][(int)x-1]
+                    +u[(int)y-1][(int)x+1]+u[(int)y+1][(int)x-1]
+                    +u[(int)y+1][(int)x+1])/9;
+
+            float mag = 5.0f*(float)Math.sqrt(Math.pow(avg_xvel,2.0) + Math.pow(avg_yvel,2.0)); //hold magnitude of arrow
             //float mag = 50.0f;
-            float angle = (float)(Math.atan2(v,u)*360/(2*Math.PI)); //orientation of vector (u,v).T
-            //float angle = -10.0f;
-            float width = 35.0f;
+
+            float angle = (float)(Math.atan2(avg_yvel,avg_xvel)*360./(2*Math.PI)); //orientation of vector (u,v).T
+            //float angle = 135.0f;
+
+            float xadj = x*(float)canvas.getWidth()/(mCameraWidth/downscalingFactor);
+            float yadj = y*(float)canvas.getHeight()/(mCameraHeight/downscalingFactor);
 
             Path p = new Path();
-            p.moveTo(x, y);
-            p.lineTo(x,y+mag/6);
-            p.lineTo(x+mag*(5.0f/8.0f),y+mag/6);
-            p.lineTo(x+mag*(5.0f/8.0f),y+mag/3);
-            p.lineTo(x+mag,y);
-            p.lineTo(x+mag*(5.0f/8.0f),y-mag/3);
-            p.lineTo(x+mag*(5.0f/8.0f),y-mag/6);
+            p.moveTo(xadj, yadj);
+            p.lineTo(xadj,yadj+mag/6);
+            p.lineTo(xadj+mag*(5.0f/8.0f),yadj+mag/6);
+            p.lineTo(xadj+mag*(5.0f/8.0f),yadj+mag/3);
+            p.lineTo(xadj+mag,yadj);
+            p.lineTo(xadj+mag*(5.0f/8.0f),yadj-mag/3);
+            p.lineTo(xadj+mag*(5.0f/8.0f),yadj-mag/6);
             //p.lineTo(length, height / 2.0f);
             //p.lineTo(10.0f, height);
-            p.lineTo(x,y-mag/6);
+            p.lineTo(xadj,yadj-mag/6);
             p.close();
             Matrix mMatrix = new Matrix();
             RectF bounds = new RectF();
             p.computeBounds(bounds, true);
-            mMatrix.postRotate(angle, x, y);
+            mMatrix.postRotate(angle, xadj, yadj);
             p.transform(mMatrix);
             canvas.drawPath(p, paint);
+
             drawTextOnBlack(canvas, "mag   " + mag, 60+10, 250, mPaintYellow);
         }
+
+
     }
 
 
