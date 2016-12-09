@@ -249,8 +249,7 @@ public class MainActivity extends Activity
             // Convert image from YUV to RGB format:
             //decodeYUV420SP(mRGBData, mYUVData, mImageWidth, mImageHeight);
             // Currently using the "grayscale" version
-            decodeYUV420SPGrayscale(mRGBData, mYUVData, mImageWidth, mImageHeight);
-            reshapeTo2D(mRGBData, mGrayscaleData, mImageWidth, mImageHeight);
+            decodeYUV420SPGrayscale(mGrayscaleData, mYUVData, mImageWidth, mImageHeight);
 
             // Now do some image processing here:
             // Calculate the FPS
@@ -383,16 +382,18 @@ public class MainActivity extends Activity
             }
         }
 
-        public void decodeYUV420SPGrayscale (int[] rgb, byte[] yuv420sp, int width, int height)
+        public void decodeYUV420SPGrayscale (int[][] greyscale, byte[] yuv420sp, int width, int height)
         { // extract grey RGB format image --- not used currently
             final int frameSize = width * height;
 
             // This is much simpler since we can ignore the u and v components
-            for (int pix = 0; pix < frameSize; pix++) {
-                int y = (0xFF & ((int) yuv420sp[pix])) - 16;
-                if (y < 0) y = 0;
-                if (y > 0xFF) y = 0xFF;
-                rgb[pix] = y;
+            for (int j = 0, pix = 0; j < height; j++) {
+                for (int i = 0; i < width; i++, pix++) {
+                    int y = (0xFF & ((int) yuv420sp[pix])) - 16;
+                    if (y < 0) y = 0;
+                    if (y > 0xFF) y = 0xFF;
+                    greyscale[j][i] = y;
+                }
             }
         }
 
