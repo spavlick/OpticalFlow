@@ -330,7 +330,7 @@ public class MainActivity extends Activity
             int newImageWidth = canvasWidth - 200;
             int marginWidth = (canvasWidth - newImageWidth) / 2;
 
-            drawArrow(canvas, 200.0f,200.0f,u,v,mPaintGreen);
+            drawArrow(canvas, 100.0f,100.0f,u,v,mPaintGreen);
 
             // Uncomment below line to draw the x gradient on top of the image
             /*
@@ -454,14 +454,24 @@ public class MainActivity extends Activity
 
         //this class draws an arrow to represent a velocity at a certain point
         private void drawArrow(Canvas canvas, float x, float y, float[][] u, float[][] v, Paint paint) {
-            double avg_xvel = (u[(int)y][(int)x]+u[(int)y-1][(int)x]+u[(int)y+1][(int)x]
-                    +u[(int)y][(int)x-1]+u[(int)y][(int)x+1]+u[(int)y-1][(int)x-1]
-                    +u[(int)y-1][(int)x+1]+u[(int)y+1][(int)x-1]
+            double avg_xvel = (u[(int)y][(int)x]
+                    +u[(int)y-1][(int)x]
+                    +u[(int)y+1][(int)x]
+                    +u[(int)y][(int)x-1]
+                    +u[(int)y][(int)x+1]
+                    +u[(int)y-1][(int)x-1]
+                    +u[(int)y-1][(int)x+1]
+                    +u[(int)y+1][(int)x-1]
                     +u[(int)y+1][(int)x+1])/9;
-            double avg_yvel = (v[(int)y][(int)x]+u[(int)y-1][(int)x]+u[(int)y+1][(int)x]
-                    +u[(int)y][(int)x-1]+u[(int)y][(int)x+1]+u[(int)y-1][(int)x-1]
-                    +u[(int)y-1][(int)x+1]+u[(int)y+1][(int)x-1]
-                    +u[(int)y+1][(int)x+1])/9;
+            double avg_yvel = (v[(int)y][(int)x]
+                    +v[(int)y-1][(int)x]
+                    +v[(int)y+1][(int)x]
+                    +v[(int)y][(int)x-1]
+                    +v[(int)y][(int)x+1]
+                    +v[(int)y-1][(int)x-1]
+                    +v[(int)y-1][(int)x+1]
+                    +v[(int)y+1][(int)x-1]
+                    +v[(int)y+1][(int)x+1])/9;
 
             float mag = 5.0f*(float)Math.sqrt(Math.pow(avg_xvel,2.0) + Math.pow(avg_yvel,2.0)); //hold magnitude of arrow
             //float mag = 50.0f;
