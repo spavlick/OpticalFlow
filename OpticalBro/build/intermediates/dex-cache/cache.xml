@@ -7,26 +7,8 @@
         jumboMode="true"
         optimize="true"
         revision="25.0.0"
-        sha1="8e2185dbb902d3e106fcd0c17677f703dd93c31a">
+        sha1="0d09d324415b1c6131e0797451d47d9a3cf6e6e7">
         <dex dex="C:\Users\steph pav\Documents\src\OpticalFlow\OpticalBro\app\build\intermediates\transforms\dex\debug\folders\1000\10\instant-run-bootstrap_146db39206766bcea41ca7be50fe135f1493f217\classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="C:\Users\steph pav\Documents\src\OpticalFlow\OpticalBro\app\build\intermediates\exploded-aar\com.android.support\support-vector-drawable\23.4.0\jars\classes.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="25.0.0"
-        sha1="c2c594cace5d83a3227b2b6e658ecbfd586d3ed9">
-        <dex dex="C:\Users\steph pav\Documents\src\OpticalFlow\OpticalBro\app\build\intermediates\transforms\dex\debug\folders\1000\10\com.android.support-support-vector-drawable-23.4.0_917557d26fdd1cf83df1117bb5052484effc7bd4\classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="C:\Users\steph pav\AppData\Local\Android\Sdk\extras\android\m2repository\com\android\support\support-annotations\23.4.0\support-annotations-23.4.0.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="25.0.0"
-        sha1="ffbe55fdb2bb456b1485831706a9eac3300bb6b8">
-        <dex dex="C:\Users\steph pav\Documents\src\OpticalFlow\OpticalBro\app\build\intermediates\transforms\dex\debug\folders\1000\10\support-annotations-23.4.0_8739abaeb394b81d5d6ad5a5f8e6221d3a7086fb\classes.dex" />
     </item>
     <item
         is-multidex="true"
@@ -52,7 +34,7 @@
         jumboMode="true"
         optimize="true"
         revision="25.0.0"
-        sha1="c8914b0e3f0826d79c0e8575a55763f40089ca96">
+        sha1="c7bfbda295f31737aceed3ab50abe22703a651d4">
         <dex dex="C:\Users\steph pav\Documents\src\OpticalFlow\OpticalBro\app\build\intermediates\transforms\dex\debug\folders\1000\10\instant-run_77affd79e94a5f864b7093344673bb2abaaf9563\classes.dex" />
     </item>
     <item
@@ -72,6 +54,24 @@
         revision="25.0.0"
         sha1="de4db3785756bfb0915a9f59a9b3f2fea7407be4">
         <dex dex="C:\Users\steph pav\Documents\src\OpticalFlow\OpticalBro\app\build\intermediates\transforms\dex\debug\folders\1000\10\com.android.support-animated-vector-drawable-23.4.0_edb7644cf15b726e358aaca2c36c23bc4e532473\classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="C:\Users\steph pav\Documents\src\OpticalFlow\OpticalBro\app\build\intermediates\exploded-aar\com.android.support\support-vector-drawable\23.4.0\jars\classes.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.0"
+        sha1="c2c594cace5d83a3227b2b6e658ecbfd586d3ed9">
+        <dex dex="C:\Users\steph pav\Documents\src\OpticalFlow\OpticalBro\app\build\intermediates\transforms\dex\debug\folders\1000\10\com.android.support-support-vector-drawable-23.4.0_917557d26fdd1cf83df1117bb5052484effc7bd4\classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="C:\Users\steph pav\AppData\Local\Android\Sdk\extras\android\m2repository\com\android\support\support-annotations\23.4.0\support-annotations-23.4.0.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.0"
+        sha1="ffbe55fdb2bb456b1485831706a9eac3300bb6b8">
+        <dex dex="C:\Users\steph pav\Documents\src\OpticalFlow\OpticalBro\app\build\intermediates\transforms\dex\debug\folders\1000\10\support-annotations-23.4.0_8739abaeb394b81d5d6ad5a5f8e6221d3a7086fb\classes.dex" />
     </item>
 
 </items>
