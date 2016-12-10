@@ -30,6 +30,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
 import android.graphics.Matrix;
+//import org.opencv.core.Core;
 
 import java.io.IOException;
 import java.util.List;
@@ -203,7 +204,7 @@ public class MainActivity extends Activity
         float vAvg[][];
 
         // play around with this value
-        float lambda = 1;
+        float lambda = 5.0f;
 
         public DrawOnTop (Context context)
         { // constructor
@@ -330,7 +331,14 @@ public class MainActivity extends Activity
             int newImageWidth = canvasWidth - 200;
             int marginWidth = (canvasWidth - newImageWidth) / 2;
 
-            drawArrow(canvas, 100.0f,100.0f,u,v,mPaintGreen);
+            
+            for(float x = mCameraWidth/downscalingFactor/8; x<mCameraWidth/downscalingFactor;
+                x+=(mCameraWidth/downscalingFactor)/4) {
+                for(float y = mCameraHeight/downscalingFactor/6; y<mCameraHeight/downscalingFactor;
+                    y+=(mCameraHeight/downscalingFactor)/3) {
+                    drawArrow(canvas, x, y, u, v, mPaintGreen);
+                }
+            }
 
             // Uncomment below line to draw the x gradient on top of the image
             /*
@@ -501,7 +509,6 @@ public class MainActivity extends Activity
             p.transform(mMatrix);
             canvas.drawPath(p, paint);
 
-            drawTextOnBlack(canvas, "mag   " + mag, 60+10, 250, mPaintYellow);
         }
 
 
