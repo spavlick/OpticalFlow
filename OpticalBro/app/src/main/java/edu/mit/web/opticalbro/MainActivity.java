@@ -30,7 +30,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
 import android.graphics.Matrix;
-//import org.opencv.core.Core;
+import org.opencv.core.Core;
 
 import java.io.IOException;
 import java.util.List;
