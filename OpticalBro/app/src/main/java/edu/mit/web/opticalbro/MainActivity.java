@@ -31,6 +31,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.graphics.Matrix;
 import org.opencv.core.Core;
+import org.opencv.core.Mat;
 
 import java.io.IOException;
 import java.util.List;
@@ -42,7 +43,7 @@ public class MainActivity extends Activity
     protected static int mCam = 0;      // the number of the camera to use (0 => rear facing)
     protected static Camera mCamera = null;
     int nPixels = 240 * 320;            // approx number of pixels desired in preview
-    int downscalingFactor = 2;          // factor for downsampling the image after capture but prior to processing; the resolution will be divided by this number in each dimension
+    int downscalingFactor = 1;          // factor for downsampling the image after capture but prior to processing; the resolution will be divided by this number in each dimension
     protected static int mCameraHeight;   // preview height (determined later)
     protected static int mCameraWidth;    // preview width
     protected static Preview mPreview;
@@ -259,6 +260,9 @@ public class MainActivity extends Activity
             timeOfLastFrame = System.currentTimeMillis();
             fps = 1000f / timeSinceLastFrame;
 
+            //Mat mat1 = Mat();
+            //mat1.put(0,0,mGrayscaleData[0]);
+
             // Calculate the brightness gradient in X, Y, and time
             for (int j = 0; j < mImageHeight - 1; j++) {
                 for (int i = 0; i < mImageWidth - 1; i++) {
@@ -341,16 +345,16 @@ public class MainActivity extends Activity
             }
 
             // Uncomment below line to draw the x gradient on top of the image
-            /*
+/*
             int[] E_x1D = new int[(mImageHeight - 1) * (mImageWidth - 1)];
-            reshapeTo1D(E_x, E_x1D, (mImageWidth - 1), (mImageHeight - 1));
+            reshapeTo1DandThreshold(E_x, E_x1D, (mImageWidth - 1), (mImageHeight - 1));
 
             Bitmap gradientBitmap = Bitmap.createBitmap(E_x1D, mImageWidth-1, mImageHeight-1, Bitmap.Config.ARGB_8888);
 
             Rect imageRect = new Rect(0, 0, mImageWidth - 1, mImageHeight - 1);
             Rect canvasRect = new Rect(0, 0, canvasWidth, canvasHeight);
-            canvas.drawBitmap(gradientBitmap, imageRect, canvasRect, null);
-            */
+            canvas.drawBitmap(gradientBitmap, imageRect, canvasRect, null);*/
+
 
             String imageFrameRateStr = "Frame Rate: " + String.format("%4d", (int) fps);
             drawTextOnBlack(canvas, imageFrameRateStr, marginWidth+10, mLeading, mPaintYellow);
@@ -415,10 +419,17 @@ public class MainActivity extends Activity
             }
         }
 
-        public void reshapeTo1D (int[][] srcArray, int[] dstArray, int width, int height) {
+        //returns 1D array that visually represents the brightness gradient
+        public void reshapeTo1DandThreshold (int[][] srcArray, int[] dstArray, int width, int height) {
             for (int j = 0, pix = 0; j < height; j++) {
                 for (int i = 0; i < width; i++, pix++) {
-                    dstArray[pix] = srcArray[j][i];
+                    if(srcArray[j][i]<-20){ //below this threshold, color pixel red
+                        dstArray[pix] = 0xffff0000;
+                    }
+                    else if (srcArray[j][i]>20){ //above this threshold, color pixel green
+                        dstArray[pix] = 0xff00ff00;
+                    }
+                    //dstArray[pix] = srcArray[j][i];
                 }
             }
         }
