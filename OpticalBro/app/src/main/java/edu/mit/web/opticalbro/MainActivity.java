@@ -336,15 +336,11 @@ public class MainActivity extends Activity
             int newImageWidth = canvasWidth - 200;
             int marginWidth = (canvasWidth - newImageWidth) / 2;
 
-            double[] utAvg = new double[12];
-            double[] vtAvg = new double[12];
-            int i = 0;
             for(float x = mCameraWidth/downscalingFactor/8; x<mCameraWidth/downscalingFactor;
                 x+=(mCameraWidth/downscalingFactor)/4) {
                 for(float y = mCameraHeight/downscalingFactor/6; y<mCameraHeight/downscalingFactor;
                     y+=(mCameraHeight/downscalingFactor)/3) {
-                    drawArrow(canvas, x, y, u, v,mPaintGreen,utAvg[i],vtAvg[i]);
-                    i++;
+                    drawArrow(canvas, x, y, u, v,mPaintGreen);
                 }
             }
 
@@ -473,8 +469,7 @@ public class MainActivity extends Activity
 
 
         //this class draws an arrow to represent a velocity at a certain point
-        private void drawArrow(Canvas canvas, float x, float y, float[][] u, float[][] v, Paint paint,
-                               double uTimeAvg, double vTimeAvg) {
+        private void drawArrow(Canvas canvas, float x, float y, float[][] u, float[][] v, Paint paint) {
             double avg_xvel = (u[(int)y][(int)x]
                     +u[(int)y-1][(int)x]
                     +u[(int)y+1][(int)x]
@@ -494,13 +489,10 @@ public class MainActivity extends Activity
                     +v[(int)y+1][(int)x-1]
                     +v[(int)y+1][(int)x+1])/9;
 
-            uTimeAvg = ((uTimeAvg * 9)+avg_xvel)/10;
-            vTimeAvg = ((vTimeAvg * 9)+avg_yvel)/10;
-
-            float mag = 20.0f*(float)Math.sqrt(Math.pow(uTimeAvg,2.0) + Math.pow(vTimeAvg,2.0)); //hold magnitude of arrow
+            float mag = 5.0f*(float)Math.sqrt(Math.pow(avg_xvel,2.0) + Math.pow(avg_yvel,2.0)); //hold magnitude of arrow
             //float mag = 50.0f;
 
-            float angle = (float)(Math.atan2(vTimeAvg,uTimeAvg)*360./(2*Math.PI)); //orientation of vector (u,v).T
+            float angle = (float)(Math.atan2(avg_yvel,avg_xvel)*360./(2*Math.PI)); //orientation of vector (u,v).T
             //float angle = 135.0f;
 
             float xadj = x*(float)canvas.getWidth()/(mCameraWidth/downscalingFactor);
