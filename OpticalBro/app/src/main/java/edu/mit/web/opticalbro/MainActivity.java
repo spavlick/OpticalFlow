@@ -32,6 +32,7 @@ import android.view.WindowManager;
 import android.graphics.Matrix;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
+//import org.opencv.core.Core;
 
 import java.io.IOException;
 import java.util.List;
@@ -43,7 +44,7 @@ public class MainActivity extends Activity
     protected static int mCam = 0;      // the number of the camera to use (0 => rear facing)
     protected static Camera mCamera = null;
     int nPixels = 240 * 320;            // approx number of pixels desired in preview
-    int downscalingFactor = 1;          // factor for downsampling the image after capture but prior to processing; the resolution will be divided by this number in each dimension
+    int downscalingFactor = 4;          // factor for downsampling the image after capture but prior to processing; the resolution will be divided by this number in each dimension
     protected static int mCameraHeight;   // preview height (determined later)
     protected static int mCameraWidth;    // preview width
     protected static Preview mPreview;
@@ -305,7 +306,7 @@ public class MainActivity extends Activity
             vAvg = new float[mImageHeight-1][mImageWidth-1];
 
             // Calculate the optical flow using an iterative scheme
-            for (int iterations = 0; iterations < 3; iterations++) {
+            for (int iterations = 0; iterations < 4; iterations++) {
                 // first, calculate the averages
                 for (int j = 0; j < mImageHeight-1; j++) {
                     for (int i = 0; i < mImageWidth-1; i++) {
@@ -319,7 +320,7 @@ public class MainActivity extends Activity
                     for (int i = 0; i < mImageWidth-1; i++) {
                         float adjustment = (E_x[j][i] * uAvg[j][i] + E_y[j][i] * vAvg[j][i] + E_t[j][i]) / (1 + lambda * ((float)Math.pow(E_x[j][i], 2) + (float)Math.pow(E_y[j][i],2)));
                         u[j][i] = u[j][i] - E_x[j][i] * adjustment;
-                        v[j][i] = u[j][i] - E_y[j][i] * adjustment;
+                        v[j][i] = v[j][i] - E_y[j][i] * adjustment;
                     }
                 }
             }
@@ -402,10 +403,7 @@ public class MainActivity extends Activity
             // This is much simpler since we can ignore the u and v components
             for (int j = 0, pix = 0; j < height; j++) {
                 for (int i = 0; i < width; i++, pix += downscalingFactor) {
-                    int y = (0xFF & ((int) yuv420sp[pix])) - 16;
-                    if (y < 0) y = 0;
-                    if (y > 0xFF) y = 0xFF;
-                    greyscale[j][i] = y;
+                    greyscale[j][i] = (0xFF & ((int) yuv420sp[pix])); // this is y
                 }
                 pix += (downscalingFactor - 1) * width;
             }
