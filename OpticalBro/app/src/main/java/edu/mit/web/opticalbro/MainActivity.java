@@ -42,7 +42,7 @@ public class MainActivity extends Activity
     protected static int mCam = 0;      // the number of the camera to use (0 => rear facing)
     protected static Camera mCamera = null;
     int nPixels = 240 * 320;            // approx number of pixels desired in preview
-    int downscalingFactor = 4;          // factor for downsampling the image after capture but prior to processing; the resolution will be divided by this number in each dimension
+    int downscalingFactor = 8;          // factor for downsampling the image after capture but prior to processing; the resolution will be divided by this number in each dimension
     protected static int mCameraHeight;   // preview height (determined later)
     protected static int mCameraWidth;    // preview width
     protected static Preview mPreview;
@@ -297,6 +297,7 @@ public class MainActivity extends Activity
             // Initialize the guesses for optical flow as 0 everywhere
             u = new float[mImageHeight-1][mImageWidth-1];
             v = new float[mImageHeight-1][mImageWidth-1];
+            // note: don't need to reset uAvg+vAvg b/c they are immediately set below based on u+v
             uAvg = new float[mImageHeight-1][mImageWidth-1];
             vAvg = new float[mImageHeight-1][mImageWidth-1];
 
@@ -332,13 +333,15 @@ public class MainActivity extends Activity
             int marginWidth = (canvasWidth - newImageWidth) / 2;
 
             
-            for(float x = mCameraWidth/downscalingFactor/8; x<mCameraWidth/downscalingFactor;
-                x+=(mCameraWidth/downscalingFactor)/4) {
-                for(float y = mCameraHeight/downscalingFactor/6; y<mCameraHeight/downscalingFactor;
-                    y+=(mCameraHeight/downscalingFactor)/3) {
+            for(float x = mCameraWidth/downscalingFactor/20; x<mCameraWidth/downscalingFactor;
+                x+=(mCameraWidth/downscalingFactor)/10) {
+                for(float y = mCameraHeight/downscalingFactor/20; y<mCameraHeight/downscalingFactor;
+                    y+=(mCameraHeight/downscalingFactor)/10) {
                     drawArrow(canvas, x, y, u, v, mPaintGreen);
                 }
             }
+
+
 
             // Uncomment below line to draw the x gradient on top of the image
             /*
@@ -459,29 +462,13 @@ public class MainActivity extends Activity
 
         //this class draws an arrow to represent a velocity at a certain point
         private void drawArrow(Canvas canvas, float x, float y, float[][] u, float[][] v, Paint paint) {
-            double avg_xvel = (u[(int)y][(int)x]
-                    +u[(int)y-1][(int)x]
-                    +u[(int)y+1][(int)x]
-                    +u[(int)y][(int)x-1]
-                    +u[(int)y][(int)x+1]
-                    +u[(int)y-1][(int)x-1]
-                    +u[(int)y-1][(int)x+1]
-                    +u[(int)y+1][(int)x-1]
-                    +u[(int)y+1][(int)x+1])/9;
-            double avg_yvel = (v[(int)y][(int)x]
-                    +v[(int)y-1][(int)x]
-                    +v[(int)y+1][(int)x]
-                    +v[(int)y][(int)x-1]
-                    +v[(int)y][(int)x+1]
-                    +v[(int)y-1][(int)x-1]
-                    +v[(int)y-1][(int)x+1]
-                    +v[(int)y+1][(int)x-1]
-                    +v[(int)y+1][(int)x+1])/9;
+            float xvel = u[(int)y][(int)x];
+            float yvel = v[(int)y][(int)x];
 
-            float mag = 5.0f*(float)Math.sqrt(Math.pow(avg_xvel,2.0) + Math.pow(avg_yvel,2.0)); //hold magnitude of arrow
+            float mag = 5.0f*(float)Math.sqrt(xvel*xvel + yvel*yvel); //hold magnitude of arrow
             //float mag = 50.0f;
 
-            float angle = (float)(Math.atan2(avg_yvel,avg_xvel)*360./(2*Math.PI)); //orientation of vector (u,v).T
+            float angle = (float)(Math.atan2(yvel,xvel)*360./(2*Math.PI)); //orientation of vector (u,v).T
             //float angle = 135.0f;
 
             float xadj = x*(float)canvas.getWidth()/(mCameraWidth/downscalingFactor);
@@ -565,6 +552,7 @@ public class MainActivity extends Activity
                         setupArrays(data, camera);
                     // Pass YUV image data to draw-on-top companion
                     System.arraycopy(data, 0, mDrawOnTop.mYUVData, 0, data.length);
+                    // marks the drawOnTop view as old, causing onDraw to be called
                     mDrawOnTop.invalidate();
                 }
             };
@@ -638,6 +626,9 @@ public class MainActivity extends Activity
             mDrawOnTop.E_x = new int[mDrawOnTop.mImageHeight - 1][mDrawOnTop.mImageWidth - 1];
             mDrawOnTop.E_y = new int[mDrawOnTop.mImageHeight - 1][mDrawOnTop.mImageWidth - 1];
             mDrawOnTop.E_t = new int[mDrawOnTop.mImageHeight - 1][mDrawOnTop.mImageWidth - 1];
+            mDrawOnTop.uAvg = new float[mDrawOnTop.mImageHeight-1][mDrawOnTop.mImageWidth-1];
+            mDrawOnTop.vAvg = new float[mDrawOnTop.mImageHeight-1][mDrawOnTop.mImageWidth-1];
+
             if (DBG) Log.i(TAG, "data length " + data.length); // should be width*height*3/2 for YUV format
             mDrawOnTop.mYUVData = new byte[data.length];
             int dataLengthExpected = downscalingFactor * downscalingFactor * mDrawOnTop.mImageWidth * mDrawOnTop.mImageHeight * 3 / 2;
