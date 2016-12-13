@@ -199,11 +199,11 @@ public class MainActivity extends Activity
         int[][] E_t;
 
         // optical flow in the x and y directions
-        float u[][];
-        float v[][];
+        float u[];
+        float v[];
         // optical flow local average (used in intermediate computation)
-        float uAvg[][];
-        float vAvg[][];
+        float uAvg[];
+        float vAvg[];
 
         // play around with this value
         float lambda = 5.0f;
@@ -297,18 +297,26 @@ public class MainActivity extends Activity
             // todo: move the following optical flow code into its own method
             
             // Initialize the guesses for optical flow as 0 everywhere
-            u = new float[mImageHeight-1][mImageWidth-1];
-            v = new float[mImageHeight-1][mImageWidth-1];
+            u = new float[(mImageHeight-1)*(mImageWidth-1)];
+            v = new float[(mImageHeight-1)*(mImageWidth-1)];
             // note: don't need to reset uAvg+vAvg b/c they are immediately set below based on u+v
-            uAvg = new float[mImageHeight-1][mImageWidth-1];
-            vAvg = new float[mImageHeight-1][mImageWidth-1];
+            //uAvg = new float[(mImageHeight-1)*(mImageWidth-1)];
+            //vAvg = new float[(mImageHeight-1)*(mImageWidth-1)];
+
+            int E_x1D[] = new int[(mImageHeight-1)*(mImageWidth-1)];
+            int E_y1D[] = new int[(mImageHeight-1)*(mImageWidth-1)];
+            int E_t1D[] = new int[(mImageHeight-1)*(mImageWidth-1)];
+
+            reshapeTo1D(E_x, E_x1D, mImageWidth-1, mImageHeight-1);
+            reshapeTo1D(E_y, E_y1D, mImageWidth-1, mImageHeight-1);
+            reshapeTo1D(E_t, E_t1D, mImageWidth-1, mImageHeight-1);
 
             // Calculate the optical flow using an iterative scheme
-            for (int iterations = 0; iterations < 4; iterations++) {
+            for (int iterations = 0; iterations < 3; iterations++) {
                 // first, calculate the averages
                 OpticalFlow.calculateAverages(this.getContext(), u, v, uAvg, vAvg, mImageWidth-1, mImageHeight-1);
 
-                OpticalFlow.adjust(this.getContext(), u, v, uAvg, vAvg, E_x, E_y, E_t, mImageWidth-1, mImageHeight-1);
+                OpticalFlow.adjust(this.getContext(), u, v, uAvg, vAvg, E_x1D, E_y1D, E_t1D, mImageWidth-1, mImageHeight-1);
             }
 
             // copy the new data to mPrevGrayscaleData for use in the next frame
@@ -322,12 +330,18 @@ public class MainActivity extends Activity
             int newImageWidth = canvasWidth - 200;
             int marginWidth = (canvasWidth - newImageWidth) / 2;
 
+            float u2d[][] = new float[mImageHeight-1][mImageWidth-1];
+            float v2d[][] = new float[mImageHeight-1][mImageWidth-1];
+
+            reshapeTo2D(u, u2d, mImageWidth-1, mImageHeight-1);
+            reshapeTo2D(v, v2d, mImageWidth-1, mImageHeight-1);
+
             
             for(float x = mCameraWidth/downscalingFactor/20; x<mCameraWidth/downscalingFactor;
                 x+=(mCameraWidth/downscalingFactor)/10) {
                 for(float y = mCameraHeight/downscalingFactor/20; y<mCameraHeight/downscalingFactor;
                     y+=(mCameraHeight/downscalingFactor)/10) {
-                    drawArrow(canvas, x, y, u, v, mPaintGreen);
+                    drawArrow(canvas, x, y, u2d, v2d, mPaintGreen);
                 }
             }
 
@@ -398,6 +412,14 @@ public class MainActivity extends Activity
         }
 
         public void reshapeTo2D (int[] rgb, int[][] greyscale, int width, int height) {
+            for (int j = 0, pix = 0; j < height; j++) {
+                for (int i = 0; i < width; i++, pix++) {
+                    greyscale[j][i] = rgb[pix];
+                }
+            }
+        }
+
+        public void reshapeTo2D (float[] rgb, float[][] greyscale, int width, int height) {
             for (int j = 0, pix = 0; j < height; j++) {
                 for (int i = 0; i < width; i++, pix++) {
                     greyscale[j][i] = rgb[pix];
@@ -590,8 +612,8 @@ public class MainActivity extends Activity
             mDrawOnTop.E_x = new int[mDrawOnTop.mImageHeight - 1][mDrawOnTop.mImageWidth - 1];
             mDrawOnTop.E_y = new int[mDrawOnTop.mImageHeight - 1][mDrawOnTop.mImageWidth - 1];
             mDrawOnTop.E_t = new int[mDrawOnTop.mImageHeight - 1][mDrawOnTop.mImageWidth - 1];
-            mDrawOnTop.uAvg = new float[mDrawOnTop.mImageHeight-1][mDrawOnTop.mImageWidth-1];
-            mDrawOnTop.vAvg = new float[mDrawOnTop.mImageHeight-1][mDrawOnTop.mImageWidth-1];
+            mDrawOnTop.uAvg = new float[(mDrawOnTop.mImageHeight-1)*(mDrawOnTop.mImageWidth-1)];
+            mDrawOnTop.vAvg = new float[(mDrawOnTop.mImageHeight-1)*(mDrawOnTop.mImageWidth-1)];
 
             if (DBG) Log.i(TAG, "data length " + data.length); // should be width*height*3/2 for YUV format
             mDrawOnTop.mYUVData = new byte[data.length];
