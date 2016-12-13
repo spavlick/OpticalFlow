@@ -319,8 +319,8 @@ public class MainActivity extends Activity
                 for (int j = 0; j < mImageHeight-1; j++) {
                     for (int i = 0; i < mImageWidth-1; i++) {
                         float adjustment = (E_x[j][i] * uAvg[j][i] + E_y[j][i] * vAvg[j][i] + E_t[j][i]) / (1 + lambda * ((float)Math.pow(E_x[j][i], 2) + (float)Math.pow(E_y[j][i],2)));
-                        u[j][i] = u[j][i] - E_x[j][i] * adjustment;
-                        v[j][i] = v[j][i] - E_y[j][i] * adjustment;
+                        u[j][i] = uAvg[j][i] - E_x[j][i] * adjustment;
+                        v[j][i] = vAvg[j][i] - E_y[j][i] * adjustment;
                     }
                 }
             }
